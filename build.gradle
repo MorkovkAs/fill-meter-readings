@@ -7,11 +7,13 @@ group 'ru.morkovka'
 version '0.0.1'
 
 repositories {
+    maven { url "https://jitpack.io" }
     mavenCentral()
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation 'io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:5.0.0'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 
     testImplementation("org.seleniumhq.selenium:selenium-java:3.141.59")
