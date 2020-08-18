@@ -2,16 +2,16 @@ package steps
 
 import io.cucumber.java8.En
 import io.cucumber.java8.Scenario
+import io.github.bonigarcia.wdm.WebDriverManager
 import org.openqa.selenium.By.cssSelector
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.chrome.ChromeDriver
 
 class StepDefs : En {
-
-    lateinit var driver: WebDriver
+    val driver: WebDriver
 
     init {
-        System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "\\driver\\chromedriver.exe")
+        WebDriverManager.chromedriver().setup()
         driver = ChromeDriver()
 
         Given("I am on the comfort-group login page") {

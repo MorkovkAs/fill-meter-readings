@@ -1,0 +1,17 @@
+spring.profiles.active: ${PROFILE:dev}
+
+# Hibernate Properties
+spring:
+  jpa:
+    # The SQL dialect makes Hibernate generate better SQL for the chosen database
+    properties.hibernate.dialect: org.hibernate.dialect.PostgreSQL92Dialect
+
+    # Hibernate ddl auto (create, create-drop, validate, update)
+    hibernate.ddl-auto: update
+
+  h2.console.enabled: true
+  datasource:
+    initialization-mode: always
+    #data: classpath:data.sql
+    sql-script-encoding: UTF-8
+
