@@ -64,12 +64,17 @@ class BotServiceImpl(
                     command("start") { bot, update ->
                         val userId = update.message!!.from!!.id
                         logger.info("[user.id = $userId] [Telegram bot] got \'start\' command")
-                        val botUser = BotUser(
-                            id = userId,
-                            username = update.message!!.from!!.username,
-                            createDate = now(),
-                            updateDate = now()
-                        )
+                        var botUser: BotUser? = botUserRepository.findByIdOrNull(userId)
+                        if (botUser == null) {
+                            botUser = BotUser(
+                                id = userId,
+                                username = update.message!!.from!!.username,
+                                createDate = now(),
+                                updateDate = now()
+                            )
+                        } else {
+                            botUser.updateDate = now()
+                        }
                         botUserRepository.save(botUser)
 
                         bot.sendMessage(

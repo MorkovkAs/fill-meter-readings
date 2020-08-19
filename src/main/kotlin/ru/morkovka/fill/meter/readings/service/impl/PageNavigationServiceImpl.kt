@@ -109,7 +109,7 @@ class PageNavigationServiceImpl : PageNavigationService {
     private fun fillHeat(user: ComfortUser, driver: WebDriver): File {
         driver.findElement(By.cssSelector("[title='Передать показания / Отопление'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Отопление)", true)
-        driver.findElement(By.cssSelector("tr td .form-group input[type='text124']")).sendKeys(user.heat)
+        driver.findElement(By.cssSelector("tr td .form-group input[type='text']")).sendKeys(user.heat)
         //Thread.sleep(5 * 1000)
         //driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
         //driver.pageSource.contains("успешно", true)
