@@ -5,8 +5,6 @@ spring:
     username: postgres
     password: postgres
 
-telegram.bot.token:
-
 auth.encoder:
   password: 57
   iterations: 20

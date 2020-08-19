@@ -1,0 +1,1 @@
+web: java -Dserver.port=$PORT -jar words-service/build/libs/fill-meter-readings-0.0.1.jar

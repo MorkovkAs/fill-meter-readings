@@ -14,12 +14,14 @@ class BotController {
     private lateinit var botService: BotService
 
     @GetMapping("start")
-    fun start () {
+    fun start(): Boolean {
         botService.start()
+        return true
     }
 
     @GetMapping("stop")
-    fun stop () {
+    fun stop(): Boolean {
         botService.stop()
+        return true
     }
 }

@@ -5,8 +5,6 @@ spring:
     username: ${JDBC_DATABASE_USERNAME}
     password: ${JDBC_DATABASE_PASSWORD}
 
-telegram.bot.token: ${TOKEN}
-
 auth.encoder:
   password: ${PASSWORD}
   iterations: ${ITERATIONS}

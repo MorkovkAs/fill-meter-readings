@@ -5,6 +5,7 @@ import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.text
+import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,6 +53,7 @@ class BotServiceImpl(
             botIsStarted = true
             bot = bot {
                 token = telegramToken
+                logLevel = HttpLoggingInterceptor.Level.NONE
 
                 dispatch {
                     command("start") { bot, update ->

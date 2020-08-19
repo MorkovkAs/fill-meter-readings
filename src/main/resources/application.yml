@@ -1,4 +1,5 @@
 spring.profiles.active: ${PROFILE:dev}
+telegram.bot.token: ${TOKEN}
 
 # Hibernate Properties
 spring:
@@ -14,4 +15,3 @@ spring:
     initialization-mode: always
     #data: classpath:data.sql
     sql-script-encoding: UTF-8
-
