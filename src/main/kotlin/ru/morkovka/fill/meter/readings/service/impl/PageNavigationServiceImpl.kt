@@ -16,11 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
 import ru.morkovka.fill.meter.readings.entity.ResultFill
-import ru.morkovka.fill.meter.readings.entity.User
+import ru.morkovka.fill.meter.readings.entity.ComfortUser
 import ru.morkovka.fill.meter.readings.service.EncryptorService
 import ru.morkovka.fill.meter.readings.service.PageNavigationService
 import java.io.File
-
 
 @Service
 class PageNavigationServiceImpl : PageNavigationService {
@@ -36,7 +35,7 @@ class PageNavigationServiceImpl : PageNavigationService {
 
     //помнить, что в текущей реализации эта штука будет оптимальнее в одном потоке
     @Synchronized
-    override fun sendReadings(user: User): ResultFill {
+    override fun sendReadings(user: ComfortUser): ResultFill {
         val result = ResultFill()
         var driver: WebDriver? = null
         try {
@@ -71,7 +70,7 @@ class PageNavigationServiceImpl : PageNavigationService {
         return result
     }
 
-    private fun login(user: User, driver: WebDriver) {
+    private fun login(user: ComfortUser, driver: WebDriver) {
         var password = ""
         if (!StringUtils.isEmpty(user.password)) {
             password = encryptorService.decrypt(user.password) ?: ""
@@ -91,7 +90,7 @@ class PageNavigationServiceImpl : PageNavigationService {
         driver.pageSource.contains("Передать показания / Отопление", true)
     }
 
-    private fun fillWater(user: User, driver: WebDriver): File {
+    private fun fillWater(user: ComfortUser, driver: WebDriver): File {
         driver.findElement(By.cssSelector("[title='Передать показания / Вода'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Вода)", true)
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[0].sendKeys(user.cold)
@@ -107,7 +106,7 @@ class PageNavigationServiceImpl : PageNavigationService {
         return scrWaterFile
     }
 
-    private fun fillHeat(user: User, driver: WebDriver): File {
+    private fun fillHeat(user: ComfortUser, driver: WebDriver): File {
         driver.findElement(By.cssSelector("[title='Передать показания / Отопление'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Отопление)", true)
         driver.findElement(By.cssSelector("tr td .form-group input[type='text124']")).sendKeys(user.heat)

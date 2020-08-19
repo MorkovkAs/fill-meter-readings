@@ -3,11 +3,15 @@ package ru.morkovka.fill.meter.readings.entity
 import javax.persistence.*
 
 @Entity
-@Table(name = "Person")
-data class User(
+@Table(name = "ComfortUser")
+data class ComfortUser(
     @Id
-    @Column val id: Long,
-    @Column val username: String?,
+    @Column
+    val id: Long,
+
+    @OneToOne(mappedBy = "comfortUser")
+    val botUser: BotUser,
+
     @Column var login: String? = null,
     @Column var password: String? = null,
     @Column var cold: String? = null,

@@ -13,13 +13,15 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
+import ru.morkovka.fill.meter.readings.entity.BotUser
+import ru.morkovka.fill.meter.readings.entity.ComfortUser
 import ru.morkovka.fill.meter.readings.entity.FillingDataStep
-import ru.morkovka.fill.meter.readings.entity.User
-import ru.morkovka.fill.meter.readings.repository.UserRepository
+import ru.morkovka.fill.meter.readings.repository.BotUserRepository
+import ru.morkovka.fill.meter.readings.repository.ComfortUserRepository
 import ru.morkovka.fill.meter.readings.service.BotService
 import ru.morkovka.fill.meter.readings.service.EncryptorService
 import ru.morkovka.fill.meter.readings.service.PageNavigationService
-
+import java.time.LocalDateTime.now
 
 @Service
 class BotServiceImpl(
@@ -28,7 +30,10 @@ class BotServiceImpl(
 ) : BotService {
 
     @Autowired
-    private lateinit var userRepository: UserRepository
+    private lateinit var botUserRepository: BotUserRepository
+
+    @Autowired
+    private lateinit var comfortUserRepository: ComfortUserRepository
 
     @Autowired
     private lateinit var pageNavigationService: PageNavigationService
@@ -57,7 +62,16 @@ class BotServiceImpl(
 
                 dispatch {
                     command("start") { bot, update ->
-                        logger.info("[Telegram bot] got \'start\' command")
+                        val userId = update.message!!.from!!.id
+                        info("[user.id = $userId] [Telegram bot] got \'start\' command")
+                        val botUser = BotUser(
+                            id = userId,
+                            username = update.message!!.from!!.username,
+                            createDate = now(),
+                            updateDate = now()
+                        )
+                        botUserRepository.save(botUser)
+
                         bot.sendMessage(
                             chatId = update.message!!.chat.id,
                             text = "Привет!\n" +
@@ -68,7 +82,8 @@ class BotServiceImpl(
                     }
 
                     command("help") { bot, update ->
-                        logger.info("[Telegram bot] got \'help\' command")
+                        val userId = update.message!!.from!!.id
+                        logger.info("[user.id = $userId] [Telegram bot] got \'help\' command")
                         bot.sendMessage(
                             chatId = update.message!!.chat.id,
                             text = "/addOrEditUser - создание/редактирование пользователя\n" +
@@ -79,20 +94,21 @@ class BotServiceImpl(
                     }
 
                     command("addOrEditUser") { bot, update ->
-                        logger.info("[Telegram bot] got \'addOrEditUser\' command")
                         val userId = update.message!!.from!!.id
-                        var user = userRepository.findByIdOrNull(userId)
+                        logger.info("[user.id = $userId] [Telegram bot] got \'addOrEditUser\' command")
+                        val botUser = botUserRepository.getOne((userId))
+                        val user = botUser.comfortUser
 
                         if (user == null) {
-                            user = User(
+                            botUser.comfortUser = ComfortUser(
                                 id = userId,
-                                username = update.message!!.from!!.username,
-                                fillingDataStep = FillingDataStep.WAIT_FOR_LOGIN
+                                fillingDataStep = FillingDataStep.WAIT_FOR_LOGIN,
+                                botUser = botUser
                             )
                         } else {
                             user.fillingDataStep = FillingDataStep.WAIT_FOR_LOGIN
                         }
-                        userRepository.save(user)
+                        botUserRepository.save(botUser)
 
                         bot.sendMessage(
                             chatId = update.message!!.chat.id,
@@ -101,9 +117,10 @@ class BotServiceImpl(
                     }
 
                     command("fillReadings") { bot, update ->
-                        logger.info("[Telegram bot] got \'fillReadings\' command")
                         val userId = update.message!!.from!!.id
-                        val user = userRepository.findByIdOrNull(userId)
+                        logger.info("[user.id = $userId] [Telegram bot] got \'fillReadings\' command")
+                        val botUser = botUserRepository.getOne((userId))
+                        val user = botUser.comfortUser
 
                         if (user == null) {
                             bot.sendMessage(
@@ -112,7 +129,7 @@ class BotServiceImpl(
                             )
                         } else {
                             user.fillingDataStep = FillingDataStep.WAIT_FOR_COLD
-                            userRepository.save(user)
+                            comfortUserRepository.save(user)
 
                             bot.sendMessage(
                                 chatId = update.message!!.chat.id,
@@ -122,9 +139,10 @@ class BotServiceImpl(
                     }
 
                     command("sendReadings") { bot, update ->
-                        logger.info("[Telegram bot] got \'sendReadings\' command")
                         val userId = update.message!!.from!!.id
-                        val user = userRepository.findByIdOrNull(userId)
+                        logger.info("[user.id = $userId] [Telegram bot] got \'sendReadings\' command")
+                        val botUser = botUserRepository.getOne((userId))
+                        val user = botUser.comfortUser
 
                         if (user == null) {
                             bot.sendMessage(
@@ -133,7 +151,7 @@ class BotServiceImpl(
                             )
                         } else {
                             user.fillingDataStep = FillingDataStep.WAIT_FOR_SENT
-                            userRepository.save(user)
+                            comfortUserRepository.save(user)
                             bot.sendMessage(
                                 chatId = update.message!!.chat.id, text = "Отправить данные показания?\n" +
                                         "холодная ${user.cold}\n" +
@@ -145,9 +163,10 @@ class BotServiceImpl(
                     }
 
                     command("Yes") { bot, update ->
-                        logger.info("[Telegram bot] got \'Yes\' command")
                         val userId = update.message!!.from!!.id
-                        val user = userRepository.findByIdOrNull(userId)
+                        logger.info("[user.id = $userId] [Telegram bot] got \'Yes\' command")
+                        val botUser = botUserRepository.getOne((userId))
+                        val user = botUser.comfortUser
 
                         if (user == null) {
                             bot.sendMessage(
@@ -171,7 +190,7 @@ class BotServiceImpl(
                                 text = "Начата отправка показаний. Это может занять 10-15 секунд."
                             )
                             user.fillingDataStep = FillingDataStep.NONE
-                            userRepository.save(user)
+                            comfortUserRepository.save(user)
                             val result = pageNavigationService.sendReadings(user)
                             if (result.error != null) {
                                 bot.sendMessage(
@@ -215,9 +234,10 @@ class BotServiceImpl(
                     }
 
                     command("No") { bot, update ->
-                        logger.info("[Telegram bot] got \'No\' command")
                         val userId = update.message!!.from!!.id
-                        val user = userRepository.findByIdOrNull(userId)
+                        logger.info("[user.id = $userId] [Telegram bot] got \'No\' command")
+                        val botUser = botUserRepository.getOne((userId))
+                        val user = botUser.comfortUser
                         if (user == null) {
                             bot.sendMessage(
                                 chatId = update.message!!.chat.id,
@@ -225,7 +245,7 @@ class BotServiceImpl(
                             )
                         } else if (user.fillingDataStep == FillingDataStep.WAIT_FOR_SENT) {
                             user.fillingDataStep = FillingDataStep.NONE
-                            userRepository.save(user)
+                            comfortUserRepository.save(user)
                             bot.sendMessage(
                                 chatId = update.message!!.chat.id,
                                 text = "Отправка показаний остановлена. Для повтора используйте /sendReadings"
@@ -234,9 +254,9 @@ class BotServiceImpl(
                     }
 
                     command("checkPass") { bot, update ->
-                        logger.info("[Telegram bot] got \'checkPass\' command")
                         val userId = update.message!!.from!!.id
-                        val user = userRepository.getOne(userId)
+                        logger.info("[user.id = $userId] [Telegram bot] got \'checkPass\' command")
+                        val user = comfortUserRepository.getOne(userId)
                         var password = ""
                         if (!StringUtils.isEmpty(user.password)) {
                             password = encryptorService.decrypt(user.password) ?: ""
@@ -248,19 +268,26 @@ class BotServiceImpl(
                     }
 
                     text { bot, update ->
+                        val userId = update.message!!.from!!.id
+                        val botUser = botUserRepository.findByIdOrNull(userId)
+                        botUser?.let {
+                            botUser.username = update.message!!.from!!.username
+                            botUser.updateDate = now()
+                            botUserRepository.save(botUser)
+                        }
+
                         if (update.message?.text?.startsWith("/") == true) {
                             return@text
                         }
 
-                        val userId = update.message!!.from!!.id
-                        val user = userRepository.findByIdOrNull(userId)
+                        val user = botUser!!.comfortUser
 
                         if (user != null) {
                             when (user.fillingDataStep) {
                                 FillingDataStep.WAIT_FOR_LOGIN -> {
                                     user.login = update.message?.text
                                     user.fillingDataStep = FillingDataStep.WAIT_FOR_PASSWORD
-                                    userRepository.save(user)
+                                    comfortUserRepository.save(user)
                                     bot.sendMessage(
                                         chatId = update.message!!.chat.id, text = "Введите свой пароль. \n" +
                                                 "Не беспокойтесь, он будет храниться в зашифрованном виде."
@@ -274,11 +301,11 @@ class BotServiceImpl(
                                     }
                                     user.password = password
                                     user.fillingDataStep = FillingDataStep.NONE
-                                    userRepository.save(user)
+                                    comfortUserRepository.save(user)
                                     bot.sendMessage(
                                         chatId = update.message!!.chat.id, text = "Пользователь успешно обновлен.\n" +
                                                 "Я забочусь о безопасности, поэтому шифрую пароли.\n" +
-                                                "Ваша учетная запись [${user.login} - ${user.password}]" +
+                                                "Ваша учетная запись [${user.login} - ${user.password}]\n" +
                                                 "Теперь вы можете обновлять текущие показания счетчиков. Используйте /fillReadings"
                                     )
                                     return@text
@@ -292,7 +319,7 @@ class BotServiceImpl(
                                     } else {
                                         user.cold = update.message?.text
                                         user.fillingDataStep = FillingDataStep.WAIT_FOR_HOT
-                                        userRepository.save(user)
+                                        comfortUserRepository.save(user)
                                         bot.sendMessage(
                                             chatId = update.message!!.chat.id,
                                             text = "Введите показания горячей воды"
@@ -309,7 +336,7 @@ class BotServiceImpl(
                                     } else {
                                         user.hot = update.message?.text
                                         user.fillingDataStep = FillingDataStep.WAIT_FOR_HEAT
-                                        userRepository.save(user)
+                                        comfortUserRepository.save(user)
                                         bot.sendMessage(
                                             chatId = update.message!!.chat.id,
                                             text = "Введите показания отопления"
@@ -326,7 +353,7 @@ class BotServiceImpl(
                                     } else {
                                         user.heat = update.message?.text
                                         user.fillingDataStep = FillingDataStep.NONE
-                                        userRepository.save(user)
+                                        comfortUserRepository.save(user)
                                         bot.sendMessage(
                                             chatId = update.message!!.chat.id, text = "Показания успешно обновлены:\n" +
                                                     "холодная ${user.cold}\n" +
@@ -337,7 +364,7 @@ class BotServiceImpl(
                                     }
                                     return@text
                                 }
-                                FillingDataStep.NONE -> {
+                                FillingDataStep.WAIT_FOR_SENT, FillingDataStep.NONE -> {
                                 }
                             }
                         }
@@ -347,7 +374,8 @@ class BotServiceImpl(
                     }
 
                     text("ping") { bot, update ->
-                        logger.info("[Telegram bot] got \'ping\' command")
+                        val userId = update.message!!.from!!.id
+                        logger.info("[user.id = $userId] [Telegram bot] got \'ping\' command")
                         bot.sendMessage(chatId = update.message!!.chat.id, text = "Pong")
                     }
                 }
