@@ -77,7 +77,7 @@ class PageNavigationServiceImpl : PageNavigationService {
         }
 
         driver.get("https://room.comfort-group.ru/login/")
-        driver.findElement(By.cssSelector("input[name='account2']")).sendKeys(user.login)
+        driver.findElement(By.cssSelector("input[name='account']")).sendKeys(user.login)
         driver.findElement(By.cssSelector("input[name='password']")).sendKeys(password)
         driver.findElement(By.cssSelector("button[type='submit']")).click()
         driver.pageSource.contains("Текущий баланс", true)
@@ -95,7 +95,7 @@ class PageNavigationServiceImpl : PageNavigationService {
         driver.pageSource.contains("Отправить показания счетчиков (Вода)", true)
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[0].sendKeys(user.cold)
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[1].sendKeys(user.hot)
-        Thread.sleep(5 * 1000)
+        //Thread.sleep(5 * 1000)
         //driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
         //driver.pageSource.contains("успешно", true)
 
@@ -110,7 +110,7 @@ class PageNavigationServiceImpl : PageNavigationService {
         driver.findElement(By.cssSelector("[title='Передать показания / Отопление'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Отопление)", true)
         driver.findElement(By.cssSelector("tr td .form-group input[type='text124']")).sendKeys(user.heat)
-        Thread.sleep(5 * 1000)
+        //Thread.sleep(5 * 1000)
         //driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
         //driver.pageSource.contains("успешно", true)
 

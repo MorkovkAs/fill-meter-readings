@@ -63,7 +63,7 @@ class BotServiceImpl(
                 dispatch {
                     command("start") { bot, update ->
                         val userId = update.message!!.from!!.id
-                        info("[user.id = $userId] [Telegram bot] got \'start\' command")
+                        logger.info("[user.id = $userId] [Telegram bot] got \'start\' command")
                         val botUser = BotUser(
                             id = userId,
                             username = update.message!!.from!!.username,
@@ -77,7 +77,7 @@ class BotServiceImpl(
                             text = "Привет!\n" +
                                     "Я помогу вам отправлять показания счетчиков в УК Комфорт.\n" +
                                     "Для работы мне необходимы логин и пароль от личного кабинета и текущие показания.\n" +
-                                    "Для вызова описания возможных команд используйте /help"
+                                    "Для вызова подсказки используйте /help"
                         )
                     }
 

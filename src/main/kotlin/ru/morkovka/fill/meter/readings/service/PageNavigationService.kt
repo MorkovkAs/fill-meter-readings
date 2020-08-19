@@ -4,5 +4,5 @@ import ru.morkovka.fill.meter.readings.entity.ResultFill
 import ru.morkovka.fill.meter.readings.entity.ComfortUser
 
 interface PageNavigationService {
-    fun sendReadings(comfortUser: ComfortUser): ResultFill
+    fun sendReadings(user: ComfortUser): ResultFill
 }
