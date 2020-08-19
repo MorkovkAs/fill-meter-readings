@@ -21,9 +21,10 @@ import ru.morkovka.fill.meter.readings.service.PageNavigationService
 
 
 @Service
-class BotServiceImpl (
+class BotServiceImpl(
     @Value("\${telegram.bot.token}")
-    private val telegramToken: String) : BotService {
+    private val telegramToken: String
+) : BotService {
 
     @Autowired
     private lateinit var userRepository: UserRepository
@@ -163,13 +164,23 @@ class BotServiceImpl (
                                 text = "Перед отправкой показаний необходимо заполнить показания. Используйте /fillReadings"
                             )
                         } else {
+                            bot.sendMessage(
+                                chatId = update.message!!.chat.id,
+                                text = "Начата отправка показаний. Это может занять секунд 10-15."
+                            )
                             user.fillingDataStep = FillingDataStep.NONE
                             userRepository.save(user)
-                            pageNavigationService.sendReadings(user)
+                            val list = pageNavigationService.sendReadings(user)
                             bot.sendMessage(
                                 chatId = update.message!!.chat.id,
                                 text = "Показания успешно отправлены"
                             )
+                            list.forEach {
+                                bot.sendPhoto(
+                                    chatId = update.message!!.chat.id,
+                                    photo = it
+                                )
+                            }
                         }
                     }
 
