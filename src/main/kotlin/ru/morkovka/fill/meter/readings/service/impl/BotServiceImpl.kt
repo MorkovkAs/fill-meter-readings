@@ -185,6 +185,12 @@ class BotServiceImpl(
                                     )
                                 }
                             }
+                            if (result.srcWater == null && result.srcHeat == null && result.error == null) {
+                                bot.sendMessage(
+                                    chatId = update.message!!.chat.id,
+                                    text = "Произошла неизвестная ошибка во время передачи показаний"
+                                )
+                            }
                             result.srcWater?.let {
                                 bot.sendMessage(
                                     chatId = update.message!!.chat.id,

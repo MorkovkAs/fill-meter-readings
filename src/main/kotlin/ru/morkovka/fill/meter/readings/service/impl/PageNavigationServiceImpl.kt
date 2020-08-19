@@ -38,24 +38,26 @@ class PageNavigationServiceImpl : PageNavigationService {
     @Synchronized
     override fun sendReadings(user: User): ResultFill {
         val result = ResultFill()
-
-        val options = ChromeOptions()
-        options.addArguments("--headless")
-        options.addArguments("--disable-gpu")
-        val driver = EventFiringWebDriver(ChromeDriver(options))
-
-        val errorListener: WebDriverEventListener = object : AbstractWebDriverEventListener() {
-            override fun onException(throwable: Throwable, driver: WebDriver) {
-                logger.info("[user.id = ${user.id}]\t Something went wrong on WebDriverEventListener")
-                val scrExceptionFile: File = (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
-                result.error = scrExceptionFile
-
-                throw throwable
-            }
-        }
-        driver.register(errorListener)
-
+        var driver: WebDriver? = null
         try {
+            val options = ChromeOptions()
+            options.addArguments("--headless")
+            options.addArguments("--disable-gpu")
+            val url = System.getenv("GOOGLE_CHROME_SHIM")
+            url?.let { options.setBinary(url) }
+            driver = EventFiringWebDriver(ChromeDriver(options))
+
+            val errorListener: WebDriverEventListener = object : AbstractWebDriverEventListener() {
+                override fun onException(throwable: Throwable, driver: WebDriver) {
+                    logger.info("[user.id = ${user.id}]\t Something went wrong on WebDriverEventListener")
+                    val scrExceptionFile: File = (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
+                    result.error = scrExceptionFile
+
+                    throw throwable
+                }
+            }
+            driver.register(errorListener)
+
             login(user, driver)
             openMetersBlock(driver)
             result.srcWater = fillWater(user, driver)
@@ -63,7 +65,7 @@ class PageNavigationServiceImpl : PageNavigationService {
         } catch (ex: Exception) {
             logger.info("[user.id = ${user.id}]\t Something went wrong")
         } finally {
-            driver.quit()
+            driver?.let { driver.quit() }
         }
 
         return result
