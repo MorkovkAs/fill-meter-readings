@@ -1,8 +1,8 @@
 package ru.morkovka.fill.meter.readings.service
 
+import ru.morkovka.fill.meter.readings.entity.ResultFill
 import ru.morkovka.fill.meter.readings.entity.User
-import java.io.File
 
 interface PageNavigationService {
-    fun sendReadings(user: User): MutableList<File>
+    fun sendReadings(user: User): ResultFill
 }

@@ -166,16 +166,38 @@ class BotServiceImpl(
                         } else {
                             bot.sendMessage(
                                 chatId = update.message!!.chat.id,
-                                text = "Начата отправка показаний. Это может занять секунд 10-15."
+                                text = "Начата отправка показаний. Это может занять 10-15 секунд."
                             )
                             user.fillingDataStep = FillingDataStep.NONE
                             userRepository.save(user)
-                            val list = pageNavigationService.sendReadings(user)
-                            bot.sendMessage(
-                                chatId = update.message!!.chat.id,
-                                text = "Показания успешно отправлены"
-                            )
-                            list.forEach {
+                            val result = pageNavigationService.sendReadings(user)
+                            if (result.error != null) {
+                                bot.sendMessage(
+                                    chatId = update.message!!.chat.id,
+                                    text = "Произошла ошибка во время передачи показаний \uD83D\uDC47"
+                                )
+                                result.error?.let {
+                                    bot.sendPhoto(
+                                        chatId = update.message!!.chat.id,
+                                        photo = it
+                                    )
+                                }
+                            }
+                            result.srcWater?.let {
+                                bot.sendMessage(
+                                    chatId = update.message!!.chat.id,
+                                    text = "Показания воды успешно отправлены \uD83D\uDC47"
+                                )
+                                bot.sendPhoto(
+                                    chatId = update.message!!.chat.id,
+                                    photo = it
+                                )
+                            }
+                            result.srcHeat?.let {
+                                bot.sendMessage(
+                                    chatId = update.message!!.chat.id,
+                                    text = "Показания отопления успешно отправлены \uD83D\uDC47"
+                                )
                                 bot.sendPhoto(
                                     chatId = update.message!!.chat.id,
                                     photo = it
