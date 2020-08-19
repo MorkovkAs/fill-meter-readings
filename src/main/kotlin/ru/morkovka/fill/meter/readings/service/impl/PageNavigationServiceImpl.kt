@@ -1,6 +1,7 @@
 package ru.morkovka.fill.meter.readings.service.impl
 
 import io.github.bonigarcia.wdm.WebDriverManager
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.openqa.selenium.By
 import org.openqa.selenium.OutputType
 import org.openqa.selenium.TakesScreenshot
@@ -10,13 +11,15 @@ import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.support.events.AbstractWebDriverEventListener
 import org.openqa.selenium.support.events.EventFiringWebDriver
 import org.openqa.selenium.support.events.WebDriverEventListener
+import org.openqa.selenium.support.ui.ExpectedConditions
+import org.openqa.selenium.support.ui.WebDriverWait
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
-import ru.morkovka.fill.meter.readings.entity.ResultFill
 import ru.morkovka.fill.meter.readings.entity.ComfortUser
+import ru.morkovka.fill.meter.readings.entity.ResultFill
 import ru.morkovka.fill.meter.readings.service.EncryptorService
 import ru.morkovka.fill.meter.readings.service.PageNavigationService
 import java.io.File
@@ -28,6 +31,8 @@ class PageNavigationServiceImpl : PageNavigationService {
     private lateinit var encryptorService: EncryptorService
 
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
+
+    lateinit var wait: WebDriverWait
 
     init {
         WebDriverManager.chromedriver().setup()
@@ -48,7 +53,7 @@ class PageNavigationServiceImpl : PageNavigationService {
 
             val errorListener: WebDriverEventListener = object : AbstractWebDriverEventListener() {
                 override fun onException(throwable: Throwable, driver: WebDriver) {
-                    logger.info("[user.id = ${user.id}]\t Something went wrong on WebDriverEventListener")
+                    logger.warn("[user.id = ${user.id}]\t Something went wrong on WebDriverEventListener")
                     val scrExceptionFile: File = (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
                     result.error = scrExceptionFile
 
@@ -56,13 +61,15 @@ class PageNavigationServiceImpl : PageNavigationService {
                 }
             }
             driver.register(errorListener)
+            wait = WebDriverWait(driver, 1)
 
             login(user, driver)
-            openMetersBlock(driver)
+            openMetersBlock(user, driver)
             result.srcWater = fillWater(user, driver)
             result.srcHeat = fillHeat(user, driver)
         } catch (ex: Exception) {
-            logger.info("[user.id = ${user.id}]\t Something went wrong")
+            logger.warn("[user.id = ${user.id}]\t Something went wrong")
+            logger.warn(ExceptionUtils.getStackTrace(ex))
         } finally {
             driver?.let { driver.quit() }
         }
@@ -84,15 +91,20 @@ class PageNavigationServiceImpl : PageNavigationService {
         logger.info("[user.id = ${user.id}]\t Login successful")
     }
 
-    private fun openMetersBlock(driver: WebDriver) {
+    private fun openMetersBlock(user: ComfortUser, driver: WebDriver) {
         driver.findElement(By.cssSelector("[title='Счетчики'] span")).click()
+        wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.cssSelector("[title='Передать показания / Вода'] span"))))
+        wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.cssSelector("[title='Передать показания / Отопление'] span"))))
         driver.pageSource.contains("Передать показания / Вода", true)
         driver.pageSource.contains("Передать показания / Отопление", true)
+        logger.info("[user.id = ${user.id}]\t openMetersBlock successful")
     }
 
     private fun fillWater(user: ComfortUser, driver: WebDriver): File {
         driver.findElement(By.cssSelector("[title='Передать показания / Вода'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Вода)", true)
+        logger.info("[user.id = ${user.id}]\t fillWater opened successful")
+
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[0].sendKeys(user.cold)
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[1].sendKeys(user.hot)
         //Thread.sleep(5 * 1000)
@@ -109,6 +121,8 @@ class PageNavigationServiceImpl : PageNavigationService {
     private fun fillHeat(user: ComfortUser, driver: WebDriver): File {
         driver.findElement(By.cssSelector("[title='Передать показания / Отопление'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Отопление)", true)
+        logger.info("[user.id = ${user.id}]\t fillHeat opened successful")
+
         driver.findElement(By.cssSelector("tr td .form-group input[type='text']")).sendKeys(user.heat)
         //Thread.sleep(5 * 1000)
         //driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
