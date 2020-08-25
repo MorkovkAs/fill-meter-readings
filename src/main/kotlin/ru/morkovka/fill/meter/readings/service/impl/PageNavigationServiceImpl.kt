@@ -65,7 +65,7 @@ class PageNavigationServiceImpl : PageNavigationService {
 
             login(user, driver)
             openMetersBlock(user, driver)
-            result.srcWater = fillWater(user, driver)
+            //result.srcWater = fillWater(user, driver)
             result.srcHeat = fillHeat(user, driver)
         } catch (ex: Exception) {
             logger.warn("[user.id = ${user.id}]\t Something went wrong")
@@ -107,9 +107,8 @@ class PageNavigationServiceImpl : PageNavigationService {
 
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[0].sendKeys(user.cold)
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[1].sendKeys(user.hot)
-        //Thread.sleep(5 * 1000)
-        //driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
-        //driver.pageSource.contains("успешно", true)
+        driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
+        driver.pageSource.contains("Данные успешно отправлены", true)
 
         val scrWaterFile: File = (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
         //FileUtils.copyFile(scrWaterFile, File("c:\\tmp\\waterFile.png"))
@@ -124,9 +123,8 @@ class PageNavigationServiceImpl : PageNavigationService {
         logger.info("[user.id = ${user.id}]\t fillHeat opened successful")
 
         driver.findElement(By.cssSelector("tr td .form-group input[type='text']")).sendKeys(user.heat)
-        //Thread.sleep(5 * 1000)
-        //driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
-        //driver.pageSource.contains("успешно", true)
+        driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
+        driver.pageSource.contains("Данные успешно отправлены", true)
 
         val scrHeatFile: File = (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
         //FileUtils.copyFile(scrHeatFile, File("c:\\tmp\\heatFile.png"))
