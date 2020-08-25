@@ -65,7 +65,7 @@ class PageNavigationServiceImpl : PageNavigationService {
 
             login(user, driver)
             openMetersBlock(user, driver)
-            //result.srcWater = fillWater(user, driver)
+            result.srcWater = fillWater(user, driver)
             result.srcHeat = fillHeat(user, driver)
         } catch (ex: Exception) {
             logger.warn("[user.id = ${user.id}]\t Something went wrong")
