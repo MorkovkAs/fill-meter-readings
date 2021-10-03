@@ -225,8 +225,14 @@ class BotServiceImpl(
                                     )
                                     bot.sendPhoto(
                                         chatId = update.message!!.chat.id,
-                                        photo = it
+                                        photo = it[0]
                                     )
+                                    if (it.size == 2) {
+                                        bot.sendPhoto(
+                                            chatId = update.message!!.chat.id,
+                                            photo = it[1]
+                                        )
+                                    }
                                 }
                                 result.srcHeat?.let {
                                     bot.sendMessage(
@@ -235,8 +241,14 @@ class BotServiceImpl(
                                     )
                                     bot.sendPhoto(
                                         chatId = update.message!!.chat.id,
-                                        photo = it
+                                        photo = it[0]
                                     )
+                                    if (it.size == 2) {
+                                        bot.sendPhoto(
+                                            chatId = update.message!!.chat.id,
+                                            photo = it[1]
+                                        )
+                                    }
                                 }
                             }
                         }

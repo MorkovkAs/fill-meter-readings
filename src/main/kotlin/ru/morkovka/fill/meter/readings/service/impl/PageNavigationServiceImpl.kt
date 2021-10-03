@@ -100,7 +100,9 @@ class PageNavigationServiceImpl : PageNavigationService {
         logger.info("[user.id = ${user.id}]\t openMetersBlock successful")
     }
 
-    private fun fillWater(user: ComfortUser, driver: WebDriver): File {
+    private fun fillWater(user: ComfortUser, driver: WebDriver): List<File> {
+        val scrWaterFileArray = ArrayList<File>()
+
         driver.findElement(By.cssSelector("[title='Передать показания / Вода'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Вода)", true)
         logger.info("[user.id = ${user.id}]\t fillWater opened successful")
@@ -109,15 +111,19 @@ class PageNavigationServiceImpl : PageNavigationService {
         driver.findElements(By.cssSelector("tr td .form-group input[type='text']"))[1].sendKeys(user.hot)
         driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
         driver.pageSource.contains("Данные успешно отправлены", true)
+        scrWaterFileArray.add((driver as TakesScreenshot).getScreenshotAs(OutputType.FILE))
+        Thread.sleep(5000)
 
-        val scrWaterFile: File = (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
+        scrWaterFileArray.add((driver as TakesScreenshot).getScreenshotAs(OutputType.FILE))
         //FileUtils.copyFile(scrWaterFile, File("c:\\tmp\\waterFile.png"))
         logger.info("[user.id = ${user.id}]\t Water saved")
 
-        return scrWaterFile
+        return scrWaterFileArray
     }
 
-    private fun fillHeat(user: ComfortUser, driver: WebDriver): File {
+    private fun fillHeat(user: ComfortUser, driver: WebDriver): List<File> {
+        val scrHeatFileArray = ArrayList<File>()
+
         driver.findElement(By.cssSelector("[title='Передать показания / Отопление'] span")).click()
         driver.pageSource.contains("Отправить показания счетчиков (Отопление)", true)
         logger.info("[user.id = ${user.id}]\t fillHeat opened successful")
@@ -125,11 +131,13 @@ class PageNavigationServiceImpl : PageNavigationService {
         driver.findElement(By.cssSelector("tr td .form-group input[type='text']")).sendKeys(user.heat)
         driver.findElement(By.cssSelector("input[value='Отправить показания']")).click()
         driver.pageSource.contains("Данные успешно отправлены", true)
+        scrHeatFileArray.add((driver as TakesScreenshot).getScreenshotAs(OutputType.FILE))
+        Thread.sleep(5000)
 
-        val scrHeatFile: File = (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
+        scrHeatFileArray.add((driver as TakesScreenshot).getScreenshotAs(OutputType.FILE))
         //FileUtils.copyFile(scrHeatFile, File("c:\\tmp\\heatFile.png"))
         logger.info("[user.id = ${user.id}]\t Heat saved")
 
-        return scrHeatFile
+        return scrHeatFileArray
     }
 }
